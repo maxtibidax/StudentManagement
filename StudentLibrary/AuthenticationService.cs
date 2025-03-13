@@ -89,5 +89,76 @@ namespace StudentLibrary
                 throw new AuthenticationException("Ошибка при аутентификации", ex);
             }
         }
+
+        public void RegisterUser(string username, string password)
+        {
+            try
+            {
+                // Проверка существования пользователя
+                if (_users.Any(u => u.Username == username))
+                {
+                    throw new AuthenticationException("Пользователь с таким именем уже существует");
+                }
+
+                // Проверка валидности данных
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                {
+                    throw new AuthenticationException("Имя пользователя и пароль не могут быть пустыми");
+                }
+
+                // Добавление нового пользователя
+                _users.Add(new User(username, password));
+                SaveUsers();
+            }
+            catch (AuthenticationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new AuthenticationException("Ошибка при регистрации пользователя", ex);
+            }
+        }
+
+        public void DeleteUser(string username, string password)
+        {
+            try
+            {
+                // Нельзя удалить пользователя admin
+                if (username == "admin")
+                {
+                    throw new AuthenticationException("Невозможно удалить учетную запись администратора");
+                }
+
+                // Проверка существования пользователя и аутентификация
+                User user = _users.FirstOrDefault(u => u.Username == username);
+                if (user == null)
+                {
+                    throw new AuthenticationException("Пользователь не найден");
+                }
+
+                if (user.Password != password)
+                {
+                    throw new AuthenticationException("Неверный пароль");
+                }
+
+                // Удаление пользователя
+                _users.Remove(user);
+                SaveUsers();
+            }
+            catch (AuthenticationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new AuthenticationException("Ошибка при удалении пользователя", ex);
+            }
+        }
+
+        public bool UserExists(string username)
+        {
+            return _users.Any(u => u.Username == username);
+        }
     }
 }
